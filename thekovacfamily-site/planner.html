@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel & Vacation Planner</title>
+<style>
+  :root {
+    --pto: #4A90D9;
+    --pto-light: #D6E8FA;
+    --board: #E53935;
+    --board-light: #FFCDD2;
+    --uslt-virtual: #7BAFD4;
+    --uslt-virtual-light: #D4EAF7;
+    --uslt-inperson: #8CAA6E;
+    --uslt-inperson-light: #DDE8D0;
+    --other: #E8837C;
+    --other-light: #FADADD;
+    --bg: #f5f6fa;
+    --card: #fff;
+    --text: #2d3436;
+    --text-light: #636e72;
+    --border: #dfe6e9;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    background: var(--bg);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
+
+  header {
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+    color: white;
+    padding: 14px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  header h1 { font-size: 1.5rem; font-weight: 600; }
+  header .subtitle { font-size: 0.85rem; opacity: 0.8; margin-top: 2px; }
+
+  .header-actions { display: flex; gap: 10px; align-items: center; }
+  .header-actions button {
+    padding: 8px 16px;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .header-actions button:hover { background: rgba(255,255,255,0.25); }
+  .header-actions .btn-add {
+    background: rgba(255,255,255,0.95);
+    color: #2c3e50;
+    font-weight: 600;
+    border: none;
+  }
+  .header-actions .btn-add:hover { background: white; }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 32px;
+    background: white;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    padding: 12px 24px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: #3498db; border-bottom-color: #3498db; font-weight: 600; }
+
+  .main { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+
+  .sticky-controls {
+    padding: 10px 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    background: var(--bg);
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 8px 14px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    align-items: center;
+    margin: 0;
+    flex: 1;
+  }
+  .legend-title { font-weight: 600; font-size: 0.85rem; color: var(--text-light); margin-right: 8px; }
+  .legend-item {
+    display: flex; align-items: center; gap: 6px; font-size: 0.8rem;
+    cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.2s;
+  }
+  .legend-item:hover { background: var(--bg); }
+  .legend-item.dimmed { opacity: 0.35; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+  /* Year navigation */
+  .year-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    flex-shrink: 0;
+  }
+  .year-nav button {
+    width: 36px; height: 36px;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .year-nav button:hover { background: var(--bg); border-color: #3498db; }
+  .year-nav .year { font-size: 1.4rem; font-weight: 700; }
+
+  /* Calendar grid */
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 1100px) { .calendar-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 700px) { .calendar-grid { grid-template-columns: 1fr; } }
+
+  .month-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .month-header {
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid var(--border);
+  }
+  .month-body { padding: 8px; }
+
+  .day-names {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--text-light);
+    font-weight: 600;
+    padding: 4px 0;
+  }
+
+  .days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  .day-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    cursor: default;
+    position: relative;
+    transition: all 0.15s;
+  }
+  .day-cell.empty { cursor: default; }
+  .day-cell.today { font-weight: 700; box-shadow: inset 0 0 0 2px #3498db; }
+  .day-cell.has-event { cursor: pointer; color: white; font-weight: 600; }
+  .day-cell.has-event:hover { transform: scale(1.15); z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+  .day-cell.cat-pto { background: var(--pto); }
+  .day-cell.cat-board { background: var(--board); }
+  .day-cell.cat-uslt-virtual { background: var(--uslt-virtual); }
+  .day-cell.cat-uslt-inperson { background: var(--uslt-inperson); }
+  .day-cell.cat-other { background: var(--other); }
+  .day-cell.filtered-out { opacity: 0.12; }
+
+  /* List view */
+  .list-view { display: none; }
+  .list-view.active { display: block; }
+  .calendar-view.active { display: block; }
+  .calendar-view { display: none; }
+
+  .list-filters {
+    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover { border-color: #3498db; }
+  .filter-btn.active { background: #3498db; color: white; border-color: #3498db; }
+
+  .event-list { display: flex; flex-direction: column; gap: 8px; }
+  .event-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .event-card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+  .event-stripe {
+    width: 4px;
+    height: 40px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .event-stripe.cat-pto { background: var(--pto); }
+  .event-stripe.cat-board { background: var(--board); }
+  .event-stripe.cat-uslt-virtual { background: var(--uslt-virtual); }
+  .event-stripe.cat-uslt-inperson { background: var(--uslt-inperson); }
+  .event-stripe.cat-other { background: var(--other); }
+
+  .event-info { flex: 1; }
+  .event-title { font-weight: 600; font-size: 0.95rem; }
+  .event-dates { font-size: 0.8rem; color: var(--text-light); margin-top: 2px; }
+  .event-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: white;
+  }
+  .event-badge.cat-pto { background: var(--pto); }
+  .event-badge.cat-board { background: var(--board); }
+  .event-badge.cat-uslt-virtual { background: var(--uslt-virtual); }
+  .event-badge.cat-uslt-inperson { background: var(--uslt-inperson); }
+  .event-badge.cat-other { background: var(--other); }
+
+  .event-actions {
+    display: flex; gap: 6px;
+  }
+  .event-actions button {
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+  }
+  .event-actions button:hover { border-color: #3498db; color: #3498db; }
+  .event-actions .btn-delete:hover { border-color: #e53935; color: #e53935; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 12px;
+    padding: 28px;
+    width: 420px;
+    max-width: 95vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .modal h2 { font-size: 1.2rem; margin-bottom: 20px; }
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: var(--text-light); }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: #3498db;
+  }
+  .form-row { display: flex; gap: 12px; }
+  .form-row .form-group { flex: 1; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .modal-actions button {
+    padding: 8px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    border: 1px solid var(--border);
+    background: white;
+    transition: all 0.2s;
+  }
+  .modal-actions .btn-save { background: #3498db; color: white; border-color: #3498db; font-weight: 600; }
+  .modal-actions .btn-save:hover { background: #2980b9; }
+  .modal-actions .btn-cancel:hover { background: var(--bg); }
+
+  /* Summary bar */
+  .summary-bar {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    padding: 8px 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+    background: var(--bg);
+  }
+  .summary-card {
+    background: white;
+    border-radius: 6px;
+    padding: 6px 14px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    min-width: 90px;
+  }
+  .summary-card .num { font-size: 1.1rem; font-weight: 700; }
+  .summary-card .label { font-size: 0.65rem; color: var(--text-light); margin-top: 1px; }
+
+  /* Tooltip */
+  .tooltip {
+    display: none;
+    position: fixed;
+    background: #2d3436;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    z-index: 200;
+    pointer-events: none;
+    max-width: 250px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+  .tooltip.show { display: block; }
+
+  .no-events { text-align: center; padding: 40px; color: var(--text-light); font-size: 0.9rem; }
+
+  /* Select/Delete mode */
+  .select-bar {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: #2c3e50;
+    color: white;
+    padding: 10px 24px;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    animation: slideDown 0.2s ease;
+  }
+  .select-bar.active { display: flex; }
+  @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+  .select-bar .select-count { font-weight: 600; font-size: 0.95rem; flex: 1; }
+  .select-bar button {
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    border: none;
+    transition: all 0.2s;
+  }
+  .select-bar .btn-delete-selected {
+    background: #e53935;
+    color: white;
+  }
+  .select-bar .btn-delete-selected:hover { background: #c62828; }
+  .select-bar .btn-delete-selected:disabled { opacity: 0.4; cursor: not-allowed; }
+  .select-bar .btn-select-all {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .select-bar .btn-select-all:hover { background: rgba(255,255,255,0.25); }
+  .select-bar .btn-cancel-select {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .select-bar .btn-cancel-select:hover { background: rgba(255,255,255,0.2); }
+
+  .event-card.selectable { cursor: pointer; }
+  .event-card.selectable:hover { background: #f8f9fa; }
+  .event-card.selected { background: #FFEBEE; border: 1px solid #e53935; }
+  .event-card .select-check {
+    display: none;
+    width: 22px; height: 22px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+  }
+  .event-card.selectable .select-check { display: flex; }
+  .event-card.selected .select-check {
+    background: #e53935;
+    border-color: #e53935;
+    color: white;
+  }
+
+  .day-cell.select-mode.has-event { cursor: crosshair; }
+  .day-cell.selected-day {
+    outline: 3px solid #2c3e50;
+    outline-offset: -1px;
+    animation: pulse 0.3s ease;
+  }
+  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+  .header-actions .btn-select {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .header-actions .btn-select.active-mode {
+    background: #e53935;
+    border-color: #e53935;
+  }
+
+  /* ===== PRINT STYLES ===== */
+  @media print {
+    @page {
+      size: landscape;
+      margin: 0.4in;
+    }
+
+    body { background: white; font-size: 8pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sticky-top { position: static; box-shadow: none; }
+    header { padding: 8px 16px; background: #2c3e50 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    header h1 { font-size: 12pt; }
+    header .subtitle { font-size: 7pt; }
+    .header-actions, .tabs, .summary-bar, .list-view, #listView, .year-nav, .tooltip, .modal-overlay, .select-bar { display: none !important; }
+
+    .main { padding: 6px 0; max-width: none; }
+
+    .legend {
+      padding: 4px 8px;
+      margin-bottom: 6px;
+      box-shadow: none;
+      border: 1px solid #ccc;
+      gap: 10px;
+    }
+    .legend-title { font-size: 7pt; }
+    .legend-item { font-size: 6.5pt; padding: 2px 4px; }
+    .legend-dot { width: 8px; height: 8px; }
+
+    .calendar-view { display: block !important; }
+    .calendar-grid {
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 6px;
+    }
+
+    .month-card {
+      box-shadow: none;
+      border: 1px solid #ddd;
+      break-inside: avoid;
+    }
+    .month-header { padding: 4px 8px; font-size: 8pt; }
+    .month-body { padding: 3px; }
+    .day-names { font-size: 5.5pt; padding: 1px 0; }
+    .days-grid { gap: 1px; }
+    .day-cell {
+      font-size: 6.5pt;
+      border-radius: 2px;
+    }
+    .day-cell.has-event {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* Print event list below calendar */
+    .print-event-list {
+      display: block !important;
+      margin-top: 8px;
+      break-before: avoid;
+    }
+    .print-event-list h3 {
+      font-size: 9pt;
+      margin-bottom: 4px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 2px;
+    }
+    .print-event-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 7pt;
+    }
+    .print-event-table th {
+      background: #f0f0f0 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      padding: 2px 6px;
+      text-align: left;
+      border: 1px solid #ccc;
+      font-weight: 600;
+    }
+    .print-event-table td {
+      padding: 2px 6px;
+      border: 1px solid #ddd;
+    }
+    .print-cat-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 2px;
+      margin-right: 3px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
+
+  /* Hidden in screen mode */
+  .print-event-list { display: none; }
+</style>
+</head>
+<body>
+
+<div class="sticky-top">
+  <header>
+    <div>
+      <h1>Travel & Vacation Planner</h1>
+      <div class="subtitle" id="headerSubtitle">2026 Overview</div>
+    </div>
+    <div class="header-actions">
+      <button onclick="printView()" title="Print calendar on one page">Print</button>
+      <button onclick="exportCSV()" title="Export events as CSV">Export CSV</button>
+      <button onclick="importCSV()" title="Import events from CSV">Import CSV</button>
+      <button class="btn-select" id="selectModeBtn" onclick="toggleSelectMode()">Select</button>
+      <button class="btn-add" onclick="openModal()">+ Add Event</button>
+    </div>
+  </header>
+
+  <!-- Selection toolbar -->
+  <div class="select-bar" id="selectBar">
+    <span class="select-count" id="selectCount">0 events selected</span>
+    <button class="btn-select-all" onclick="selectAllVisible()">Select All</button>
+    <button class="btn-delete-selected" id="deleteSelectedBtn" onclick="deleteSelected()" disabled>Delete Selected</button>
+    <button class="btn-cancel-select" onclick="toggleSelectMode()">Cancel</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-view="calendar" onclick="switchView('calendar')">Calendar</div>
+    <div class="tab" data-view="list" onclick="switchView('list')">List</div>
+  </div>
+
+  <div class="summary-bar" id="summaryBar"></div>
+
+  <div class="sticky-controls">
+    <div class="year-nav">
+      <button onclick="changeYear(-1)">&larr;</button>
+      <span class="year" id="yearLabel">2026</span>
+      <button onclick="changeYear(1)">&rarr;</button>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Calendar View -->
+  <div class="calendar-view active" id="calendarView">
+    <div class="calendar-grid" id="calendarGrid"></div>
+  </div>
+
+  <!-- Print Event List (only visible when printing) -->
+  <div class="print-event-list" id="printEventList"></div>
+
+  <!-- List View -->
+  <div class="list-view" id="listView">
+    <div class="list-filters" id="listFilters"></div>
+    <div class="event-list" id="eventList"></div>
+  </div>
+</div>
+
+<!-- Event Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Add Event</h2>
+    <input type="hidden" id="eventId">
+    <div class="form-group">
+      <label>Event Title</label>
+      <input type="text" id="eventName" placeholder="e.g., Atlanta USLT Meeting">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Start Date</label>
+        <input type="date" id="eventStart">
+      </div>
+      <div class="form-group">
+        <label>End Date</label>
+        <input type="date" id="eventEnd">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="eventCategory">
+        <option value="pto">Vacation / PTO</option>
+        <option value="board">Board Meeting</option>
+        <option value="uslt-virtual">USLT Meeting Virtual</option>
+        <option value="uslt-inperson">USLT Meeting In Person</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Location (optional)</label>
+      <input type="text" id="eventLocation" placeholder="e.g., Atlanta, GA">
+    </div>
+    <div class="form-group">
+      <label>Notes (optional)</label>
+      <textarea id="eventNotes" rows="2" placeholder="Additional details..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveEvent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- Hidden file input for import -->
+<input type="file" id="fileInput" accept=".csv" style="display:none" onchange="handleImport(event)">
+
+<script>
+const CATEGORIES = {
+  'pto':           { label: 'Vacation / PTO',        color: '#4A90D9', lightColor: '#D6E8FA' },
+  'board':         { label: 'Board Meeting',          color: '#E53935', lightColor: '#FFCDD2' },
+  'uslt-virtual':  { label: 'USLT Meeting Virtual',   color: '#7BAFD4', lightColor: '#D4EAF7' },
+  'uslt-inperson': { label: 'USLT Meeting In Person',  color: '#8CAA6E', lightColor: '#DDE8D0' },
+  'other':         { label: 'Other',                  color: '#E8837C', lightColor: '#FADADD' }
+};
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+// Initial events from your spreadsheet
+const DEFAULT_EVENTS = [
+  { id: '1',  name: 'Atlanta USLT',              start: '2026-01-20', end: '2026-01-22', category: 'uslt-inperson', location: 'Atlanta, GA', notes: '' },
+  { id: '2',  name: 'USLT (Weather Cancel)',      start: '2026-02-24', end: '2026-02-26', category: 'uslt-inperson', location: '', notes: 'Cancelled due to weather' },
+  { id: '3',  name: 'Miami Board Virtual',        start: '2026-03-02', end: '2026-03-03', category: 'uslt-virtual', location: 'Virtual / Miami', notes: '' },
+  { id: '4',  name: 'Leadership Summit',          start: '2026-03-16', end: '2026-03-19', category: 'uslt-inperson', location: '', notes: '' },
+  { id: '5',  name: 'ATL USLT',                   start: '2026-03-30', end: '2026-04-01', category: 'uslt-inperson', location: 'Atlanta, GA', notes: '' },
+  { id: '6',  name: 'USLT Meeting (TBD)',         start: '2026-04-19', end: '2026-04-22', category: 'board', location: 'TBD', notes: '' },
+  { id: '7',  name: 'USLT Meeting (TBD)',         start: '2026-05-18', end: '2026-05-20', category: 'uslt-inperson', location: 'TBD', notes: '' },
+  { id: '8',  name: 'PTO London',                 start: '2026-06-01', end: '2026-06-02', category: 'pto', location: 'London', notes: '' },
+  { id: '9',  name: 'CRO Away Days',              start: '2026-06-03', end: '2026-06-04', category: 'uslt-inperson', location: 'York', notes: '' },
+  { id: '10', name: 'PTO',                        start: '2026-06-05', end: '2026-06-05', category: 'pto', location: '', notes: '' },
+  { id: '11', name: 'PTO',                        start: '2026-06-08', end: '2026-06-11', category: 'pto', location: '', notes: '' },
+  { id: '12', name: 'Chicago USLT',               start: '2026-06-15', end: '2026-06-17', category: 'uslt-inperson', location: 'Chicago, IL', notes: '' },
+  { id: '13', name: 'Boston USLT',                start: '2026-07-20', end: '2026-07-22', category: 'uslt-inperson', location: 'Boston, MA', notes: '' },
+  { id: '14', name: 'USLT (TBD)',                 start: '2026-08-24', end: '2026-08-26', category: 'uslt-inperson', location: 'TBD', notes: '' },
+  { id: '15', name: 'USLT Chicago',               start: '2026-09-21', end: '2026-09-23', category: 'uslt-inperson', location: 'Chicago, IL', notes: '' },
+  { id: '16', name: 'Board Meeting',              start: '2026-09-30', end: '2026-10-01', category: 'board', location: '', notes: '' },
+  { id: '17', name: 'USLT Meeting',               start: '2026-10-20', end: '2026-10-22', category: 'uslt-inperson', location: '', notes: '' },
+  { id: '18', name: 'Global Leaders',             start: '2026-11-17', end: '2026-11-19', category: 'uslt-inperson', location: '', notes: '' },
+  { id: '19', name: 'NYC Board Meeting',          start: '2026-11-30', end: '2026-12-01', category: 'board', location: 'New York, NY', notes: '' },
+  { id: '20', name: 'London CRO',                 start: '2026-12-14', end: '2026-12-17', category: 'uslt-inperson', location: 'London', notes: '' },
+];
+
+let events = JSON.parse(JSON.stringify(DEFAULT_EVENTS));
+let currentYear = 2026;
+let activeView = 'calendar';
+let activeFilters = new Set(Object.keys(CATEGORIES));
+let legendFilters = new Set(Object.keys(CATEGORIES));
+let selectMode = false;
+let selectedEventIds = new Set();
+
+// Try to load saved data (version check forces reload when defaults change)
+const DATA_VERSION = 2;
+try {
+  const savedVer = localStorage.getItem('tvp_version');
+  const saved = localStorage.getItem('tvp_events');
+  if (saved && parseInt(savedVer) === DATA_VERSION) events = JSON.parse(saved);
+  else localStorage.setItem('tvp_version', DATA_VERSION);
+} catch(e) {}
+
+function saveData() {
+  try { localStorage.setItem('tvp_events', JSON.stringify(events)); } catch(e) {}
+}
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+// ---- Rendering ----
+
+function render() {
+  document.getElementById('headerSubtitle').textContent = currentYear + ' Overview';
+  document.getElementById('yearLabel').textContent = currentYear;
+  renderSummary();
+  renderLegend();
+  renderCalendar();
+  renderList();
+}
+
+function renderSummary() {
+  const yearEvents = events.filter(e => {
+    const y1 = parseInt(e.start.slice(0,4));
+    const y2 = parseInt(e.end.slice(0,4));
+    return y1 === currentYear || y2 === currentYear;
+  });
+  const catDays = {};
+  for (const k in CATEGORIES) catDays[k] = 0;
+  yearEvents.forEach(e => {
+    const s = new Date(e.start + 'T00:00:00');
+    const en = new Date(e.end + 'T00:00:00');
+    const days = Math.round((en - s) / 86400000) + 1;
+    if (catDays[e.category] !== undefined) catDays[e.category] += days;
+  });
+
+  const travelCategories = new Set(['board', 'uslt-inperson', 'other']);
+  let travelDays = 0;
+  for (const k in catDays) {
+    if (travelCategories.has(k)) travelDays += catDays[k];
+  }
+
+  let html = `<div class="summary-card"><div class="num">${yearEvents.length}</div><div class="label">Total Events</div></div>`;
+  html += `<div class="summary-card"><div class="num">${travelDays}</div><div class="label">Days on the Road</div></div>`;
+  for (const k in CATEGORIES) {
+    if (catDays[k] > 0) {
+      html += `<div class="summary-card"><div class="num" style="color:${CATEGORIES[k].color}">${catDays[k]}</div><div class="label">${CATEGORIES[k].label} Days</div></div>`;
+    }
+  }
+  document.getElementById('summaryBar').innerHTML = html;
+}
+
+function renderLegend() {
+  let html = '<span class="legend-title">Categories:</span>';
+  for (const k in CATEGORIES) {
+    const dimmed = !legendFilters.has(k) ? ' dimmed' : '';
+    html += `<div class="legend-item${dimmed}" onclick="toggleLegendFilter('${k}')">
+      <div class="legend-dot" style="background:${CATEGORIES[k].color}"></div>
+      ${CATEGORIES[k].label}
+    </div>`;
+  }
+  document.getElementById('legend').innerHTML = html;
+}
+
+function toggleLegendFilter(cat) {
+  if (legendFilters.has(cat)) legendFilters.delete(cat);
+  else legendFilters.add(cat);
+  render();
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('calendarGrid');
+  let html = '';
+  for (let m = 0; m < 12; m++) {
+    html += renderMonth(currentYear, m);
+  }
+  grid.innerHTML = html;
+}
+
+function renderMonth(year, month) {
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+
+  let daysHtml = '';
+  for (let i = 0; i < firstDay; i++) {
+    daysHtml += '<div class="day-cell empty"></div>';
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayEvents = getEventsForDate(dateStr);
+    const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
+
+    let cls = 'day-cell';
+    if (isToday) cls += ' today';
+    if (dayEvents.length > 0) {
+      const cat = dayEvents[0].category;
+      cls += ` has-event cat-${cat}`;
+      if (!legendFilters.has(cat)) cls += ' filtered-out';
+      if (selectMode) cls += ' select-mode';
+      const isSelected = dayEvents.some(e => selectedEventIds.has(e.id));
+      if (isSelected) cls += ' selected-day';
+      daysHtml += `<div class="${cls}" data-date="${dateStr}"
+        onmouseenter="showTooltip(event, '${dateStr}')"
+        onmouseleave="hideTooltip()"
+        onclick="${selectMode ? `toggleSelectDate('${dateStr}')` : `openModalForDate('${dateStr}')`}">${d}</div>`;
+    } else {
+      daysHtml += `<div class="${cls}">${d}</div>`;
+    }
+  }
+
+  return `<div class="month-card">
+    <div class="month-header">${MONTH_NAMES[month]} ${year}</div>
+    <div class="month-body">
+      <div class="day-names">${DAY_NAMES.map(d => `<div>${d}</div>`).join('')}</div>
+      <div class="days-grid">${daysHtml}</div>
+    </div>
+  </div>`;
+}
+
+function getEventsForDate(dateStr) {
+  return events.filter(e => dateStr >= e.start && dateStr <= e.end);
+}
+
+function renderList() {
+  // Filters
+  let filtersHtml = `<div class="filter-btn ${activeFilters.size === Object.keys(CATEGORIES).length ? 'active' : ''}" onclick="toggleFilter('all')">All</div>`;
+  for (const k in CATEGORIES) {
+    filtersHtml += `<div class="filter-btn ${activeFilters.has(k) ? 'active' : ''}" onclick="toggleFilter('${k}')" style="${activeFilters.has(k) ? 'background:'+CATEGORIES[k].color+';color:white;border-color:'+CATEGORIES[k].color : ''}">${CATEGORIES[k].label}</div>`;
+  }
+  document.getElementById('listFilters').innerHTML = filtersHtml;
+
+  // Events
+  const filtered = events
+    .filter(e => activeFilters.has(e.category))
+    .filter(e => {
+      const y1 = parseInt(e.start.slice(0,4));
+      const y2 = parseInt(e.end.slice(0,4));
+      return y1 === currentYear || y2 === currentYear;
+    })
+    .sort((a, b) => a.start.localeCompare(b.start));
+
+  if (filtered.length === 0) {
+    document.getElementById('eventList').innerHTML = '<div class="no-events">No events found for this year and filter selection.</div>';
+    return;
+  }
+
+  let html = '';
+  filtered.forEach(e => {
+    const cat = CATEGORIES[e.category] || CATEGORIES['other'];
+    const startDate = formatDate(e.start);
+    const endDate = formatDate(e.end);
+    const dateRange = e.start === e.end ? startDate : `${startDate} — ${endDate}`;
+    const days = daysBetween(e.start, e.end);
+    const locationStr = e.location ? ` · ${e.location}` : '';
+
+    const isSelected = selectedEventIds.has(e.id);
+    const selectableClass = selectMode ? ' selectable' : '';
+    const selectedClass = isSelected ? ' selected' : '';
+    const cardClick = selectMode ? `toggleSelectEvent('${e.id}')` : `editEvent('${e.id}')`;
+
+    html += `<div class="event-card${selectableClass}${selectedClass}" onclick="${cardClick}">
+      <div class="select-check">${isSelected ? '&#10003;' : ''}</div>
+      <div class="event-stripe cat-${e.category}"></div>
+      <div class="event-info">
+        <div class="event-title">${escHtml(e.name)}</div>
+        <div class="event-dates">${dateRange} (${days} day${days!==1?'s':''})${locationStr}</div>
+        ${e.notes ? `<div class="event-dates" style="font-style:italic">${escHtml(e.notes)}</div>` : ''}
+      </div>
+      <span class="event-badge cat-${e.category}">${cat.label}</span>
+      ${!selectMode ? `<div class="event-actions" onclick="event.stopPropagation()">
+        <button onclick="editEvent('${e.id}')">Edit</button>
+        <button class="btn-delete" onclick="deleteEvent('${e.id}')">Delete</button>
+      </div>` : ''}
+    </div>`;
+  });
+  document.getElementById('eventList').innerHTML = html;
+}
+
+function toggleFilter(cat) {
+  if (cat === 'all') {
+    if (activeFilters.size === Object.keys(CATEGORIES).length) {
+      activeFilters.clear();
+    } else {
+      activeFilters = new Set(Object.keys(CATEGORIES));
+    }
+  } else {
+    if (activeFilters.has(cat)) activeFilters.delete(cat);
+    else activeFilters.add(cat);
+  }
+  renderList();
+}
+
+// ---- Modal ----
+
+function openModal(eventData) {
+  const modal = document.getElementById('modalOverlay');
+  document.getElementById('modalTitle').textContent = eventData ? 'Edit Event' : 'Add Event';
+  document.getElementById('eventId').value = eventData ? eventData.id : '';
+  document.getElementById('eventName').value = eventData ? eventData.name : '';
+  document.getElementById('eventStart').value = eventData ? eventData.start : '';
+  document.getElementById('eventEnd').value = eventData ? eventData.end : '';
+  document.getElementById('eventCategory').value = eventData ? eventData.category : 'uslt-inperson';
+  document.getElementById('eventLocation').value = eventData ? (eventData.location || '') : '';
+  document.getElementById('eventNotes').value = eventData ? (eventData.notes || '') : '';
+  modal.classList.add('active');
+}
+
+function openModalForDate(dateStr) {
+  const dayEvents = getEventsForDate(dateStr);
+  if (dayEvents.length > 0) {
+    editEvent(dayEvents[0].id);
+  } else {
+    openModal();
+    document.getElementById('eventStart').value = dateStr;
+    document.getElementById('eventEnd').value = dateStr;
+  }
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+function saveEvent() {
+  const id = document.getElementById('eventId').value;
+  const name = document.getElementById('eventName').value.trim();
+  const start = document.getElementById('eventStart').value;
+  const end = document.getElementById('eventEnd').value;
+  const category = document.getElementById('eventCategory').value;
+  const location = document.getElementById('eventLocation').value.trim();
+  const notes = document.getElementById('eventNotes').value.trim();
+
+  if (!name || !start || !end) { alert('Please fill in the title, start date, and end date.'); return; }
+  if (end < start) { alert('End date must be on or after start date.'); return; }
+
+  if (id) {
+    const idx = events.findIndex(e => e.id === id);
+    if (idx >= 0) events[idx] = { id, name, start, end, category, location, notes };
+  } else {
+    events.push({ id: genId(), name, start, end, category, location, notes });
+  }
+  saveData();
+  closeModal();
+  render();
+}
+
+function editEvent(id) {
+  const ev = events.find(e => e.id === id);
+  if (ev) openModal(ev);
+}
+
+function deleteEvent(id) {
+  if (confirm('Delete this event?')) {
+    events = events.filter(e => e.id !== id);
+    saveData();
+    render();
+  }
+}
+
+// ---- Tooltip ----
+
+function showTooltip(evt, dateStr) {
+  const dayEvents = getEventsForDate(dateStr);
+  if (dayEvents.length === 0) return;
+  const tooltip = document.getElementById('tooltip');
+  const lines = dayEvents.map(e => {
+    const cat = CATEGORIES[e.category] || CATEGORIES['other'];
+    return `<strong>${escHtml(e.name)}</strong><br>${cat.label}${e.location ? ' · ' + escHtml(e.location) : ''}`;
+  });
+  tooltip.innerHTML = lines.join('<hr style="border:none;border-top:1px solid rgba(255,255,255,0.2);margin:4px 0">');
+  tooltip.classList.add('show');
+  const rect = evt.target.getBoundingClientRect();
+  tooltip.style.left = Math.min(rect.left, window.innerWidth - 260) + 'px';
+  tooltip.style.top = (rect.bottom + 8) + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').classList.remove('show');
+}
+
+// ---- View switch ----
+
+function switchView(view) {
+  activeView = view;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
+  document.getElementById('calendarView').classList.toggle('active', view === 'calendar');
+  document.getElementById('listView').classList.toggle('active', view === 'list');
+}
+
+// ---- Year navigation ----
+
+function changeYear(delta) {
+  currentYear += delta;
+  render();
+}
+
+// ---- Export/Import ----
+
+function exportCSV() {
+  const yearEvents = events.filter(e => {
+    const y = parseInt(e.start.slice(0,4));
+    return y === currentYear;
+  }).sort((a,b) => a.start.localeCompare(b.start));
+
+  let csv = 'Title,Start Date,End Date,Category,Location,Notes\n';
+  yearEvents.forEach(e => {
+    const cat = CATEGORIES[e.category] ? CATEGORIES[e.category].label : e.category;
+    csv += `"${e.name}","${e.start}","${e.end}","${cat}","${e.location || ''}","${e.notes || ''}"\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Travel_Vacation_${currentYear}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importCSV() {
+  document.getElementById('fileInput').click();
+}
+
+function handleImport(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const lines = e.target.result.split('\n').filter(l => l.trim());
+    if (lines.length < 2) { alert('CSV appears empty.'); return; }
+    const catMap = {};
+    for (const k in CATEGORIES) catMap[CATEGORIES[k].label.toLowerCase()] = k;
+
+    let imported = 0;
+    for (let i = 1; i < lines.length; i++) {
+      const parts = parseCSVLine(lines[i]);
+      if (parts.length >= 3) {
+        const catStr = (parts[3] || '').trim().toLowerCase();
+        const category = catMap[catStr] || 'other';
+        events.push({
+          id: genId(),
+          name: parts[0] || 'Imported Event',
+          start: parts[1],
+          end: parts[2],
+          category,
+          location: parts[4] || '',
+          notes: parts[5] || ''
+        });
+        imported++;
+      }
+    }
+    saveData();
+    render();
+    alert(`Imported ${imported} event(s).`);
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQuotes = !inQuotes; }
+    else if (ch === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+    else { current += ch; }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+// ---- Select / Delete Mode ----
+
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  selectedEventIds.clear();
+  document.getElementById('selectBar').classList.toggle('active', selectMode);
+  document.getElementById('selectModeBtn').classList.toggle('active-mode', selectMode);
+  document.getElementById('selectModeBtn').textContent = selectMode ? 'Cancel' : 'Select';
+  updateSelectCount();
+  render();
+}
+
+function toggleSelectEvent(id) {
+  if (selectedEventIds.has(id)) selectedEventIds.delete(id);
+  else selectedEventIds.add(id);
+  updateSelectCount();
+  render();
+}
+
+function toggleSelectDate(dateStr) {
+  const dayEvents = getEventsForDate(dateStr);
+  dayEvents.forEach(e => {
+    if (selectedEventIds.has(e.id)) selectedEventIds.delete(e.id);
+    else selectedEventIds.add(e.id);
+  });
+  updateSelectCount();
+  render();
+}
+
+function selectAllVisible() {
+  const yearEvents = events.filter(e => {
+    const y1 = parseInt(e.start.slice(0,4));
+    const y2 = parseInt(e.end.slice(0,4));
+    return y1 === currentYear || y2 === currentYear;
+  }).filter(e => activeFilters.has(e.category));
+
+  const allSelected = yearEvents.every(e => selectedEventIds.has(e.id));
+  if (allSelected) {
+    yearEvents.forEach(e => selectedEventIds.delete(e.id));
+  } else {
+    yearEvents.forEach(e => selectedEventIds.add(e.id));
+  }
+  updateSelectCount();
+  render();
+}
+
+function deleteSelected() {
+  const count = selectedEventIds.size;
+  if (count === 0) return;
+  if (!confirm(`Delete ${count} selected event${count !== 1 ? 's' : ''}? This cannot be undone.`)) return;
+  events = events.filter(e => !selectedEventIds.has(e.id));
+  selectedEventIds.clear();
+  saveData();
+  updateSelectCount();
+  render();
+}
+
+function updateSelectCount() {
+  const count = selectedEventIds.size;
+  document.getElementById('selectCount').textContent = `${count} event${count !== 1 ? 's' : ''} selected`;
+  document.getElementById('deleteSelectedBtn').disabled = count === 0;
+}
+
+// ---- Print ----
+
+function printView() {
+  renderPrintList();
+  // Make sure calendar view is visible for printing
+  const calView = document.getElementById('calendarView');
+  const wasCal = calView.classList.contains('active');
+  calView.classList.add('active');
+  setTimeout(() => {
+    window.print();
+    if (!wasCal) calView.classList.remove('active');
+  }, 100);
+}
+
+function renderPrintList() {
+  const yearEvents = events
+    .filter(e => parseInt(e.start.slice(0,4)) === currentYear || parseInt(e.end.slice(0,4)) === currentYear)
+    .sort((a,b) => a.start.localeCompare(b.start));
+
+  if (yearEvents.length === 0) {
+    document.getElementById('printEventList').innerHTML = '';
+    return;
+  }
+
+  let html = `<h3>Events — ${currentYear}</h3><table class="print-event-table"><thead><tr><th>Event</th><th>Dates</th><th>Category</th><th>Location</th><th>Notes</th></tr></thead><tbody>`;
+  yearEvents.forEach(e => {
+    const cat = CATEGORIES[e.category] || CATEGORIES['other'];
+    const s = formatDateShort(e.start);
+    const en = e.start === e.end ? '' : ' — ' + formatDateShort(e.end);
+    html += `<tr>
+      <td><strong>${escHtml(e.name)}</strong></td>
+      <td>${s}${en}</td>
+      <td><span class="print-cat-dot" style="background:${cat.color}"></span>${cat.label}</td>
+      <td>${escHtml(e.location || '')}</td>
+      <td>${escHtml(e.notes || '')}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('printEventList').innerHTML = html;
+}
+
+function formatDateShort(str) {
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// ---- Utilities ----
+
+function formatDate(str) {
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function daysBetween(s, e) {
+  return Math.round((new Date(e+'T00:00:00') - new Date(s+'T00:00:00')) / 86400000) + 1;
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// Close modal on overlay click
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Keyboard shortcut
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    if (selectMode) { toggleSelectMode(); return; }
+    closeModal();
+  }
+  if (e.key === 'n' && !e.ctrlKey && !e.metaKey && !document.querySelector('.modal-overlay.active') && !selectMode) {
+    const active = document.activeElement;
+    if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA' && active.tagName !== 'SELECT')) {
+      openModal();
+    }
+  }
+});
+
+// Initialize
+render();
+</script>
+</body>
+</html>
