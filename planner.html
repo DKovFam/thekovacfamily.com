@@ -456,6 +456,192 @@
     border-color: #e53935;
   }
 
+  /* ===== MOBILE / iPHONE STYLES ===== */
+  @media (max-width: 500px) {
+    /* Header: stack vertically, compact */
+    header {
+      padding: 10px 14px;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    header h1 { font-size: 1.15rem; }
+    header .subtitle { font-size: 0.75rem; margin-top: 0; }
+
+    .header-actions {
+      gap: 6px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    .header-actions button {
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      flex: 1;
+      min-width: 0;
+      text-align: center;
+    }
+
+    /* Tabs */
+    .tabs { padding: 0 14px; }
+    .tab { padding: 10px 16px; font-size: 0.8rem; }
+
+    /* Summary bar: scrollable row */
+    .summary-bar {
+      padding: 6px 14px;
+      gap: 6px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .summary-card {
+      min-width: 70px;
+      padding: 5px 10px;
+      flex-shrink: 0;
+    }
+    .summary-card .num { font-size: 0.95rem; }
+    .summary-card .label { font-size: 0.55rem; }
+
+    /* Sticky controls: stack year nav above legend */
+    .sticky-controls {
+      padding: 8px 14px;
+      flex-direction: column;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .year-nav {
+      justify-content: center;
+      gap: 16px;
+    }
+    .year-nav button { width: 40px; height: 40px; font-size: 1.2rem; }
+    .year-nav .year { font-size: 1.3rem; }
+
+    /* Legend: compact grid */
+    .legend {
+      padding: 6px 10px;
+      gap: 4px 10px;
+    }
+    .legend-title { font-size: 0.7rem; margin-right: 4px; }
+    .legend-item { font-size: 0.65rem; padding: 2px 4px; gap: 4px; }
+    .legend-dot { width: 9px; height: 9px; }
+
+    /* Main content area */
+    .main { padding: 12px 10px; }
+
+    /* Calendar: single column, larger touch targets */
+    .calendar-grid {
+      grid-template-columns: 1fr !important;
+      gap: 10px;
+    }
+    .month-card { border-radius: 8px; }
+    .month-header { padding: 10px 12px; font-size: 0.9rem; }
+    .month-body { padding: 6px; }
+
+    .day-names { font-size: 0.65rem; }
+    .days-grid { gap: 3px; }
+    .day-cell {
+      font-size: 0.85rem;
+      border-radius: 5px;
+    }
+    /* Bigger touch targets on mobile */
+    .day-cell.has-event {
+      min-height: 32px;
+    }
+    /* Disable hover scale on touch devices */
+    .day-cell.has-event:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Tooltip: position at bottom of screen like a toast */
+    .tooltip {
+      left: 10px !important;
+      right: 10px;
+      bottom: 20px !important;
+      top: auto !important;
+      max-width: none;
+      text-align: center;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 0.85rem;
+    }
+
+    /* List view: cards stack better */
+    .list-filters {
+      gap: 6px;
+      padding-bottom: 4px;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+    .filter-btn {
+      font-size: 0.7rem;
+      padding: 5px 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .event-card {
+      padding: 10px 12px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .event-stripe { height: 32px; }
+    .event-title { font-size: 0.85rem; }
+    .event-dates { font-size: 0.7rem; }
+    .event-badge {
+      font-size: 0.6rem;
+      padding: 3px 7px;
+    }
+    .event-actions {
+      width: 100%;
+      justify-content: flex-end;
+      margin-top: 4px;
+    }
+    .event-actions button {
+      padding: 6px 14px;
+      font-size: 0.75rem;
+    }
+
+    /* Modal: full screen on mobile */
+    .modal {
+      width: 100%;
+      max-width: 100vw;
+      min-height: 100vh;
+      border-radius: 0;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal h2 { font-size: 1.1rem; margin-bottom: 14px; }
+    .form-row { flex-direction: column; gap: 0; }
+    .form-group input, .form-group select, .form-group textarea {
+      font-size: 16px; /* Prevents iOS zoom on focus */
+      padding: 10px 12px;
+    }
+    .modal-actions {
+      margin-top: auto;
+      padding-top: 16px;
+    }
+    .modal-actions button {
+      padding: 12px 20px;
+      font-size: 1rem;
+      flex: 1;
+    }
+
+    /* Select bar */
+    .select-bar {
+      padding: 8px 14px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .select-bar .select-count { font-size: 0.8rem; }
+    .select-bar button { font-size: 0.75rem; padding: 5px 10px; }
+
+    /* No-events message */
+    .no-events { padding: 24px; font-size: 0.85rem; }
+  }
+
   /* ===== PRINT STYLES ===== */
   @media print {
     @page {
